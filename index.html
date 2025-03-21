@@ -15,14 +15,21 @@
     <script>
         function initMap() {
             const mapOptions = {
-                center: { lat: 37.7749, lng: -122.4194 }, // San Francisco
+                center: { lat: -25.2637, lng: -57.5759 }, // Asunción, Paraguay
                 zoom: 10,
-                styles: [ /* Your JSON styling here */ ]
+                styles: [
+                    { "elementType": "geometry", "stylers": [{ "color": "#1d2c4d" }] },
+                    { "elementType": "labels.text.fill", "stylers": [{ "color": "#8ec3b9" }] },
+                    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#1a3646" }] },
+                    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#0e1626" }] },
+                    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#304a7d" }] },
+                    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#2c6675" }] }
+                ]
             };
-
+      
             new google.maps.Map(document.getElementById("map"), mapOptions);
         }
-    </script>
+      </script>
 
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBHFAOiyYrQwVCje7jhyBqVL0iFCPvVcmQ&callback=initMap"></script>
 </body>
