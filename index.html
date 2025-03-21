@@ -3,33 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Custom Google Map</title>
+    <title>Google Maps Place Details</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; }
-        #map { width: 100%; height: 100vh; }
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 100%;
+            width: 75%;
+            float: left;
+        }
+        #sidebar {
+            width: 25%;
+            height: 100%;
+            float: right;
+            overflow-y: auto;
+            padding: 10px;
+            background: #1d2c4d;
+            color: white;
+            display: none; /* Initially hidden */
+        }
+        h2 {
+            color: #8ec3b9;
+        }
+        .place-photo {
+            width: 100%;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <div id="sidebar">
+        <h2 id="place-name"></h2>
+        <p id="place-address"></p>
+        <img id="place-photo" class="place-photo" src="" alt="Place Photo">
+        <p><strong>Rating:</strong> <span id="place-rating"></span></p>
+        <p><strong>Business Hours:</strong> <span id="place-hours"></span></p>
+        <p><a id="place-website" href="#" target="_blank">Visit Website</a></p>
+        <p><a id="place-directions" href="#" target="_blank">Get Directions</a></p>
+    </div>
 
     <script>
+        let map;
+
         function initMap() {
-            const mapOptions = {
+            map = new google.maps.Map(document.getElementById("map"), {
                 center: { lat: -25.2637, lng: -57.5759 }, // Asunción, Paraguay
-                zoom: 10,
+                zoom: 14,
                 styles: [
                     { "elementType": "geometry", "stylers": [{ "color": "#1d2c4d" }] },
                     { "elementType": "labels.text.fill", "stylers": [{ "color": "#8ec3b9" }] },
-                    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#1a3646" }] },
-                    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#0e1626" }] },
-                    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#304a7d" }] },
-                    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#2c6675" }] }
+                    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#1a3646" }] }
                 ]
-            };
-      
-            new google.maps.Map(document.getElementById("map"), mapOptions);
+            });
+
+            const service = new google.maps.places.PlacesService(map);
+
+            // Click Listener for Place Details
+            map.addListener("click", (event) => {
+                const request = {
+                    location: event.latLng,
+                    radius: 50, // Search for places within 50 meters
+                };
+
+                service.nearbySearch(request, (results, status) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                        const place = results[0];
+                        getPlaceDetails(place.place_id);
+                    }
+                });
+            });
         }
-      </script>
+
+        function getPlaceDetails(placeId) {
+            const service = new google.maps.places.PlacesService(map);
+            service.getDetails({ placeId }, (place, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    document.getElementById("place-name").innerText = place.name;
+                    document.getElementById("place-address").innerText = place.formatted_address;
+                    document.getElementById("place-rating").innerText = place.rating || "No rating available";
+                    
+                    // Show first photo if available
+                    if (place.photos && place.photos.length > 0) {
+                        document.getElementById("place-photo").src = place.photos[0].getUrl();
+                    } else {
+                        document.getElementById("place-photo").src = "";
+                    }
+
+                    // Show business hours
+                    if (place.opening_hours) {
+                        document.getElementById("place-hours").innerText = place.opening_hours.weekday_text.join(", ");
+                    } else {
+                        document.getElementById("place-hours").innerText = "No business hours available.";
+                    }
+
+                    // Website link
+                    if (place.website) {
+                        document.getElementById("place-website").href = place.website;
+                        document.getElementById("place-website").style.display = "block";
+                    } else {
+                        document.getElementById("place-website").style.display = "none";
+                    }
+
+                    // Directions link
+                    document.getElementById("place-directions").href = `https://www.google.com/maps/dir/?api=1&destination=${place.geometry.location.lat()},${place.geometry.location.lng()}`;
+                    
+                    // Show sidebar
+                    document.getElementById("sidebar").style.display = "block";
+                }
+            });
+        }
+    </script>
 
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBHFAOiyYrQwVCje7jhyBqVL0iFCPvVcmQ&callback=initMap"></script>
 </body>
